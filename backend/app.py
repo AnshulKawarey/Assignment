@@ -37,50 +37,22 @@ llm = ChatGroq(model="mixtral-8x7b-32768", temperature=0.4)
 qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
 
 #Chat endpoint api call
-# @app.route("/chat", methods=["POST"])
-# def chat():
-#     user_input = request.json.get("query")
-#     if not user_input:
-#         return jsonify({"error": "Query parameter is missing"}), 400
-    
-#     response = qa_chain.run(user_input)
-#     return jsonify({"response": response})
-
 @app.route("/chat", methods=["POST"])
 def chat():
     user_input = request.json.get("query")
     if not user_input:
         return jsonify({"error": "Query parameter is missing"}), 400
-
-    response = qa_chain.invoke(user_input)
-
-    # Process the response line by line for better formatting
-    lines = response.splitlines()
-    formatted_lines = []
-    for line in lines:
-        # Skip empty lines
-        if not line.strip():
-            continue
-
-        # If line already starts with bold markers, leave it
-        if line.strip().startswith("**"):
-            formatted_lines.append(line)
-            continue
-
-        # Try to find a delimiter (either " (" or " -")
-        # This regex captures text until either " (" or " -"
-        m = re.search(r"^(.*?)(\s*(\(|-))", line)
-        if m:
-            title = m.group(1).strip()
-            rest = line[len(title):]
-            # Wrap the title in bold markers
-            formatted_line = f"**{title}**{rest}"
-            formatted_lines.append(formatted_line)
-        else:
-            formatted_lines.append(line)
-
-    formatted_response = "\n\n".join(formatted_lines)
-    return jsonify({"response": formatted_response})
+    
+    response = qa_chain.run(user_input)
+    
+    # Format the response if it contains multiple courses
+    if isinstance(response, str) and "1." in response:
+        formatted_response = response.replace(". ", ".\n\n- **").replace(": ", "**: ")
+        formatted_response = "- **" + formatted_response  # Make first item bold
+    
+        return jsonify({"response": formatted_response})
+    
+    return jsonify({"response": response})
 
 if __name__ == "__main__":
     app.run(debug=True)
