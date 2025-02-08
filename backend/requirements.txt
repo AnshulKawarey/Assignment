@@ -1,0 +1,9 @@
+Flask==2.2.2
+flask-cors==3.0.10
+python-dotenv==0.21.0
+markdown2==2.4.3
+faiss-cpu==1.7.3
+langchain==0.0.188
+langchain-huggingface==0.0.2
+langchain-groq==0.0.1
+langchain-community==0.0.1
